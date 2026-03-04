@@ -1,0 +1,54 @@
+data_root: data
+
+tasks:
+  low_light:
+    dataset: lol
+    train_low: data/lol_dataset/our485/low
+    train_high: data/lol_dataset/our485/high
+    val_low: data/lol_dataset/eval15/low
+    val_high: data/lol_dataset/eval15/high
+    image_size: 256
+    batch_size: 8
+
+  denoise:
+    dataset: sidd
+    data_dir: data/SIDD_Small_sRGB_Only/Data
+    image_size: 256
+    batch_size: 8
+    noise_std_min: 0.01
+    noise_std_max: 0.06
+
+  super_resolution:
+    dataset: div2k
+    train_hr: data/DIV2K/DIV2K_train_HR
+    val_hr: data/DIV2K/DIV2K_valid_HR
+    scale: 2
+    image_size: 256
+    batch_size: 8
+
+  inpainting:
+    dataset: places365
+    train_dir: data/place365/train
+    val_dir: data/place365/val
+    image_size: 256
+    batch_size: 8
+    mask_type: mixed
+    mask_num_strokes: 8
+
+  face_restoration:
+    dataset: faces
+    data_dir: data/faces_dataset_small
+    image_size: 256
+    batch_size: 8
+    downsample_prob: 0.8
+    downsample_scales: [2, 3, 4]
+    blur_prob: 0.9
+    blur_kernel_sizes: [3, 5, 7]
+    blur_sigma_min: 0.3
+    blur_sigma_max: 2.0
+    color_jitter_prob: 0.6
+    jpeg_prob: 0.6
+    jpeg_quality_min: 30
+    jpeg_quality_max: 70
+    noise_std_min: 0.005
+    noise_std_max: 0.05

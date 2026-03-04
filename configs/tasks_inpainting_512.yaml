@@ -1,0 +1,9 @@
+tasks:
+  inpainting:
+    dataset: places365
+    train_dir: data/place365/train
+    val_dir: data/place365/val
+    image_size: 512
+    batch_size: 2
+    mask_type: mixed
+    mask_num_strokes: 10

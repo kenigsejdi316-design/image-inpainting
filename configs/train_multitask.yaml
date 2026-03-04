@@ -1,0 +1,36 @@
+defaults:
+  base: configs/base.yaml
+  tasks: configs/tasks.yaml
+
+training:
+  epochs: 50
+  lr: 0.0002
+  weight_decay: 0.0
+  grad_clip: 1.0
+  save_every: 5
+  use_amp: true
+  val_every: 2
+  early_stop_patience: 6
+  early_stop_min_delta: 0.01
+  save_top_k: 3
+
+model:
+  name: multitask_unet
+  in_channels: 3
+  out_channels: 3
+  base_channels: 64
+
+loss:
+  l1_weight: 1.0
+  ssim_weight: 0.1
+  inpaint_hole_weight: 6.0
+  inpaint_valid_weight: 1.0
+  inpaint_tv_weight: 0.05
+
+tasks:
+  enabled:
+    - low_light
+    - denoise
+    - super_resolution
+    - inpainting
+    - face_restoration

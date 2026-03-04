@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能图像修复系统</title>
+  <style>
+    :root {
+      --bg: #f3f5f9;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --ok-bg: #ecfdf3;
+      --ok-text: #166534;
+      --stat-bg: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+    .container {
+      max-width: 1240px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .header {
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      color: #fff;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+    .header h1 { margin: 0 0 6px; font-size: 27px; }
+    .header p { margin: 0; opacity: 0.96; }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+      font-size: 13px;
+    }
+    .step {
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+    .left-panel {
+      position: sticky;
+      top: 14px;
+    }
+    .form-row { margin-bottom: 12px; }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+    input[type="text"], select, input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 14px;
+    }
+    .submit-btn {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 14px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .submit-btn:hover { background: var(--primary-hover); }
+    .status {
+      margin-top: 10px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: var(--ok-bg);
+      color: var(--ok-text);
+      border: 1px solid #bbf7d0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .result-stack {
+      display: grid;
+      gap: 14px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--stat-bg);
+      padding: 10px 12px;
+      min-height: 76px;
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .image-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .image-card h3 {
+      margin: 0;
+      padding: 10px 12px;
+      font-size: 15px;
+      border-bottom: 1px solid var(--line);
+      background: #fafafa;
+    }
+    .image-wrap {
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 10px;
+    }
+    .image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+    .meta {
+      border-top: 1px solid var(--line);
+      padding: 10px 12px;
+      background: #fcfcfc;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #374151;
+    }
+    .mask-preview {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .mask-preview h3 {
+      margin: 0;
+      padding: 10px 12px;
+      font-size: 15px;
+      border-bottom: 1px solid var(--line);
+      background: #fafafa;
+    }
+    .actions {
+      border-top: 1px solid var(--line);
+      padding: 10px 12px;
+      background: #fff;
+    }
+    .download-btn {
+      display: inline-block;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .download-btn:hover {
+      background: var(--primary-hover);
+    }
+    .mask-panel {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 8px;
+      background: #fafcff;
+    }
+    .mask-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .mini-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #374151;
+      width: auto;
+    }
+    .mini-btn.active {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: #eff6ff;
+    }
+    .mask-canvas-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: auto;
+      max-height: 260px;
+    }
+    #mask_canvas {
+      display: block;
+      max-width: 100%;
+      cursor: crosshair;
+      background: #f3f4f6;
+    }
+    .hidden { display: none; }
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .range-wrap input[type="range"] {
+      flex: 1;
+    }
+    .range-value {
+      min-width: 34px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1d4ed8;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .left-panel { position: static; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .steps { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .image-wrap { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>智能图像修复系统</h1>
+      <p>面向毕业设计演示：上传图片后，一键完成增强、去噪、超分、补全或人脸修复。</p>
+      <div class="steps">
+        <div class="step">第 1 步：上传待处理图片</div>
+        <div class="step">第 2 步：选择修复任务</div>
+        <div class="step">第 3 步：点击“开始处理”查看结果</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="panel left-panel">
+        <h2>操作面板</h2>
+        <form method="post" enctype="multipart/form-data">
+          <div class="form-row">
+            <label for="image">上传图片</label>
+            <input id="image" name="image" type="file" accept="image/*" required />
+            <div class="hint">支持 JPG、PNG 等常见图片格式。</div>
+          </div>
+
+          <div class="form-row">
+            <label for="task">选择任务</label>
+            <select id="task" name="task">
+              {% for task in tasks %}
+              <option value="{{ task.id }}" {% if task.id == selected_task %}selected{% endif %}>{{ task.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="hint">建议优先选择与你图片类型最接近的任务。</div>
+          </div>
+
+          <div id="one_click_section" class="form-row hidden">
+            <label>一键修复功能勾选（按顺序串行执行）</label>
+            <div class="mask-panel">
+              <div class="mask-toolbar" style="gap: 14px;">
+                {% for item in one_click_task_options %}
+                <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:500; font-size:13px;">
+                  <input
+                    type="checkbox"
+                    name="one_click_tasks"
+                    value="{{ item.id }}"
+                    {% if item.id in one_click_selected %}checked{% endif %}
+                  />
+                  {{ item.name }}
+                </label>
+                {% endfor %}
+              </div>
+              <div class="hint">勾选后将按“低光→去噪→超分→补全→人脸修复”顺序处理。</div>
+            </div>
+          </div>
+
+          <div id="sr_resolution_section" class="form-row hidden">
+            <label for="sr_resolution">超分输出分辨率</label>
+            <select id="sr_resolution" name="sr_resolution">
+              {% for item in sr_resolution_options %}
+              <option value="{{ item.id }}" {% if item.id == sr_resolution %}selected{% endif %}>{{ item.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="hint">仅对“超分辨率”任务生效，可输出常用分辨率（720P/1080P/2K/4K）。</div>
+          </div>
+
+          <div id="denoise_strength_section" class="form-row hidden">
+            <label for="denoise_strength_slider">去噪强度</label>
+            <div class="range-wrap">
+              <input id="denoise_strength_slider" type="range" min="0" max="100" step="1" value="55" />
+              <span id="denoise_strength_label" class="range-value">55%</span>
+            </div>
+            <input id="denoise_strength" name="denoise_strength" type="hidden" value="{{ denoise_strength or '0.55' }}" />
+            <div class="hint">滑动程度决定去噪强度：越靠右去噪越强（最高强度会显著增强清噪）。</div>
+          </div>
+
+          <div id="low_light_strength_section" class="form-row hidden">
+            <label for="low_light_strength_slider">低光增强强度</label>
+            <div class="range-wrap">
+              <input id="low_light_strength_slider" type="range" min="0" max="100" step="1" value="55" />
+              <span id="low_light_strength_label" class="range-value">55%</span>
+            </div>
+            <input id="low_light_strength" name="low_light_strength" type="hidden" value="{{ low_light_strength or '0.55' }}" />
+            <div class="hint">滑动程度决定增强幅度：越靠右亮度与对比增强越明显。</div>
+          </div>
+
+          <input type="hidden" id="mask_data" name="mask_data" />
+
+          <div id="mask_draw_section" class="form-row hidden">
+            <label>补全画笔（推荐）</label>
+            <div class="mask-panel">
+              <div class="mask-toolbar">
+                <button class="mini-btn active" type="button" id="brush_mode">画笔</button>
+                <button class="mini-btn" type="button" id="eraser_mode">橡皮</button>
+                <button class="mini-btn" type="button" id="clear_mask">清空掩膜</button>
+                <label style="margin:0; font-size:12px; font-weight:500; color:#4b5563;">笔刷大小</label>
+                <input type="range" id="brush_size" min="6" max="80" value="24" />
+              </div>
+              <div class="mask-canvas-wrap">
+                <canvas id="mask_canvas" width="512" height="320"></canvas>
+              </div>
+              <div class="hint">上传图片后，在要消除/补全的区域直接涂抹；白色涂抹区域会作为补全掩膜提交。</div>
+            </div>
+          </div>
+
+          <div id="auto_mask_section" class="form-row hidden">
+            <label style="display:flex; align-items:center; gap:8px; font-weight:600;">
+              <input type="checkbox" name="auto_mask" value="1" {% if auto_mask_enabled %}checked{% endif %} />
+              自动识别缺失区域（无手动掩膜时）
+            </label>
+            <div class="hint">开启后系统会先自动检测疑似缺失/遮挡区域，再执行补全；若检测失败会自动回退随机掩膜。</div>
+          </div>
+
+          <div class="form-row">
+            <label for="ckpt_path">模型权重路径（可选）</label>
+            <input id="ckpt_path" name="ckpt_path" type="text" value="{{ ckpt_path }}" placeholder="留空将自动使用默认权重路径" />
+            <div class="hint">默认读取 experiments/checkpoints/best_任务名.pth</div>
+          </div>
+
+          <button class="submit-btn" type="submit">开始处理</button>
+        </form>
+
+        {% if status %}
+        <div class="status"><strong>运行状态：</strong>{{ status }}</div>
+        {% endif %}
+      </div>
+
+      <div class="result-stack">
+        <div class="panel">
+          <h2>指标概览</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">输入分辨率</div>
+              <div class="stat-value">
+                {% if compare_info %}
+                  {{ compare_info.input_resolution }}
+                {% else %}
+                  -
+                {% endif %}
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">输出分辨率</div>
+              <div class="stat-value">
+                {% if compare_info %}
+                  {{ compare_info.output_resolution }}
+                {% else %}
+                  -
+                {% endif %}
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">像素比例（输出/输入）</div>
+              <div class="stat-value">
+                {% if compare_info %}
+                  {{ compare_info.pixel_ratio }}%
+                {% else %}
+                  -
+                {% endif %}
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">噪点变化（σ）</div>
+              <div class="stat-value">
+                {% if compare_info %}
+                  {{ compare_info.noise_delta }}（{{ compare_info.noise_trend }}）
+                {% else %}
+                  -
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>前后对比</h2>
+          <div class="compare-grid">
+          <div class="image-card">
+            <h3>处理前（原图）</h3>
+            <div class="image-wrap">
+              {% if input_url %}
+                <img src="{{ input_url }}" alt="输入图" />
+              {% else %}
+                <span>上传图片后将在这里显示</span>
+              {% endif %}
+            </div>
+            <div class="meta">
+              {% if input_meta %}
+                尺寸：{{ input_meta.width }} × {{ input_meta.height }} px<br />
+                噪点估计：σ={{ input_meta.noise_sigma }}（{{ input_meta.noise_level }}）<br />
+                通道模式：{{ input_meta.mode }}<br />
+                格式：{{ input_meta.format }}<br />
+                文件大小：{{ input_meta.size_kb }} KB
+              {% else %}
+                参数信息将在上传后显示
+              {% endif %}
+            </div>
+          </div>
+          <div class="image-card">
+            <h3>处理后（结果图）</h3>
+            <div class="image-wrap">
+              {% if output_url %}
+                <img src="{{ output_url }}" alt="输出图" />
+              {% else %}
+                <span>点击“开始处理”后将在这里显示</span>
+              {% endif %}
+            </div>
+            <div class="meta">
+              {% if output_meta %}
+                尺寸：{{ output_meta.width }} × {{ output_meta.height }} px<br />
+                噪点估计：σ={{ output_meta.noise_sigma }}（{{ output_meta.noise_level }}）<br />
+                通道模式：{{ output_meta.mode }}<br />
+                格式：{{ output_meta.format }}<br />
+                文件大小：{{ output_meta.size_kb }} KB
+              {% else %}
+                参数信息将在处理完成后显示
+              {% endif %}
+            </div>
+            <div class="actions">
+              {% if download_url %}
+                <a class="download-btn" href="{{ download_url }}" download>下载处理后图片</a>
+              {% endif %}
+            </div>
+          </div>
+          </div>
+        </div>
+
+        <div class="mask-preview">
+          <h3>补全输入（掩膜后）</h3>
+          <div class="image-wrap">
+            {% if masked_input_url %}
+              <img src="{{ masked_input_url }}" alt="补全输入" />
+            {% else %}
+              <span>选择“图像补全”并处理后将在这里显示</span>
+            {% endif %}
+          </div>
+          <div class="meta">仅用于图像补全任务展示输入掩膜效果</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const taskSelect = document.getElementById('task');
+    const imageInput = document.getElementById('image');
+    const maskInput = document.getElementById('mask_data');
+    const form = document.querySelector('form');
+    const drawSection = document.getElementById('mask_draw_section');
+    const autoMaskSection = document.getElementById('auto_mask_section');
+    const oneClickSection = document.getElementById('one_click_section');
+    const srResolutionSection = document.getElementById('sr_resolution_section');
+    const denoiseStrengthSection = document.getElementById('denoise_strength_section');
+    const denoiseStrengthSlider = document.getElementById('denoise_strength_slider');
+    const denoiseStrengthInput = document.getElementById('denoise_strength');
+    const denoiseStrengthLabel = document.getElementById('denoise_strength_label');
+    const lowLightStrengthSection = document.getElementById('low_light_strength_section');
+    const lowLightStrengthSlider = document.getElementById('low_light_strength_slider');
+    const lowLightStrengthInput = document.getElementById('low_light_strength');
+    const lowLightStrengthLabel = document.getElementById('low_light_strength_label');
+    const oneClickTaskCheckboxes = Array.from(document.querySelectorAll('input[name="one_click_tasks"]'));
+
+    const canvas = document.getElementById('mask_canvas');
+    const viewCtx = canvas.getContext('2d');
+    const maskLayer = document.createElement('canvas');
+    const maskCtx = maskLayer.getContext('2d');
+
+    const brushBtn = document.getElementById('brush_mode');
+    const eraserBtn = document.getElementById('eraser_mode');
+    const clearBtn = document.getElementById('clear_mask');
+    const brushSizeInput = document.getElementById('brush_size');
+
+    let baseImage = null;
+    let isDrawing = false;
+    let useEraser = false;
+    let hasMaskStroke = false;
+
+    function parseStrengthToPercent(raw) {
+      const text = String(raw || '').trim().toLowerCase();
+      if (text === 'weak') return 25;
+      if (text === 'medium') return 55;
+      if (text === 'strong') return 100;
+      const num = Number(text);
+      if (Number.isNaN(num)) return 55;
+      return Math.max(0, Math.min(100, Math.round(num * 100)));
+    }
+
+    function syncDenoiseStrengthUI() {
+      const percent = Math.max(0, Math.min(100, Number(denoiseStrengthSlider.value) || 0));
+      denoiseStrengthInput.value = (percent / 100).toFixed(2);
+      denoiseStrengthLabel.textContent = `${percent}%`;
+    }
+
+    function syncLowLightStrengthUI() {
+      const percent = Math.max(0, Math.min(100, Number(lowLightStrengthSlider.value) || 0));
+      lowLightStrengthInput.value = (percent / 100).toFixed(2);
+      lowLightStrengthLabel.textContent = `${percent}%`;
+    }
+
+    function isOneClickSubTaskEnabled(taskId) {
+      return oneClickTaskCheckboxes.some((el) => el.checked && el.value === taskId);
+    }
+
+    function updateTaskSectionsVisibility() {
+      const isInpainting = taskSelect.value === 'inpainting';
+      const isSuperResolution = taskSelect.value === 'super_resolution';
+      const isDenoise = taskSelect.value === 'denoise';
+      const isLowLight = taskSelect.value === 'low_light';
+      const isOneClick = taskSelect.value === 'one_click';
+
+      oneClickSection.classList.toggle('hidden', !isOneClick);
+
+      const showInpaintingTools = isInpainting || (isOneClick && isOneClickSubTaskEnabled('inpainting'));
+      const showSRTools = isSuperResolution || (isOneClick && isOneClickSubTaskEnabled('super_resolution'));
+      const showDenoiseTools = isDenoise || (isOneClick && isOneClickSubTaskEnabled('denoise'));
+      const showLowLightTools = isLowLight || (isOneClick && isOneClickSubTaskEnabled('low_light'));
+
+      drawSection.classList.toggle('hidden', !showInpaintingTools);
+      autoMaskSection.classList.toggle('hidden', !showInpaintingTools);
+      srResolutionSection.classList.toggle('hidden', !showSRTools);
+      denoiseStrengthSection.classList.toggle('hidden', !showDenoiseTools);
+      lowLightStrengthSection.classList.toggle('hidden', !showLowLightTools);
+      if (!showInpaintingTools) {
+        maskInput.value = '';
+      }
+    }
+
+    function syncCanvasSize(width, height) {
+      canvas.width = width;
+      canvas.height = height;
+      maskLayer.width = width;
+      maskLayer.height = height;
+      maskCtx.fillStyle = 'black';
+      maskCtx.fillRect(0, 0, width, height);
+      hasMaskStroke = false;
+      renderCanvas();
+    }
+
+    function renderCanvas() {
+      viewCtx.clearRect(0, 0, canvas.width, canvas.height);
+      if (baseImage) {
+        viewCtx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+      } else {
+        viewCtx.fillStyle = '#f3f4f6';
+        viewCtx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      viewCtx.globalAlpha = 0.38;
+      viewCtx.drawImage(maskLayer, 0, 0);
+      viewCtx.globalAlpha = 1.0;
+    }
+
+    function setMode(eraser) {
+      useEraser = eraser;
+      brushBtn.classList.toggle('active', !eraser);
+      eraserBtn.classList.toggle('active', eraser);
+    }
+
+    function getCanvasPos(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+      return { x, y };
+    }
+
+    function drawPoint(x, y) {
+      const radius = Number(brushSizeInput.value) / 2;
+      maskCtx.beginPath();
+      maskCtx.arc(x, y, radius, 0, Math.PI * 2);
+      maskCtx.fillStyle = useEraser ? 'black' : 'white';
+      maskCtx.fill();
+      if (!useEraser) hasMaskStroke = true;
+      renderCanvas();
+    }
+
+    function handlePointerDown(event) {
+      if (!baseImage) return;
+      isDrawing = true;
+      const p = getCanvasPos(event);
+      drawPoint(p.x, p.y);
+    }
+
+    function handlePointerMove(event) {
+      if (!isDrawing || !baseImage) return;
+      const p = getCanvasPos(event);
+      drawPoint(p.x, p.y);
+    }
+
+    function handlePointerUp() {
+      isDrawing = false;
+    }
+
+    imageInput.addEventListener('change', () => {
+      const file = imageInput.files && imageInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          baseImage = img;
+          syncCanvasSize(img.width, img.height);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    brushBtn.addEventListener('click', () => setMode(false));
+    eraserBtn.addEventListener('click', () => setMode(true));
+    clearBtn.addEventListener('click', () => {
+      if (!maskLayer.width || !maskLayer.height) return;
+      maskCtx.fillStyle = 'black';
+      maskCtx.fillRect(0, 0, maskLayer.width, maskLayer.height);
+      hasMaskStroke = false;
+      renderCanvas();
+    });
+
+    canvas.addEventListener('mousedown', handlePointerDown);
+    canvas.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerUp);
+    canvas.addEventListener('mouseleave', handlePointerUp);
+
+    denoiseStrengthSlider.addEventListener('input', syncDenoiseStrengthUI);
+    lowLightStrengthSlider.addEventListener('input', syncLowLightStrengthUI);
+    oneClickTaskCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', updateTaskSectionsVisibility);
+    });
+
+    taskSelect.addEventListener('change', updateTaskSectionsVisibility);
+    form.addEventListener('submit', () => {
+      if (taskSelect.value === 'inpainting' && baseImage && hasMaskStroke) {
+        maskInput.value = maskLayer.toDataURL('image/png');
+      } else {
+        maskInput.value = '';
+      }
+      syncDenoiseStrengthUI();
+      syncLowLightStrengthUI();
+    });
+
+    denoiseStrengthSlider.value = String(parseStrengthToPercent(denoiseStrengthInput.value));
+    lowLightStrengthSlider.value = String(parseStrengthToPercent(lowLightStrengthInput.value));
+    syncDenoiseStrengthUI();
+    syncLowLightStrengthUI();
+    setMode(false);
+    updateTaskSectionsVisibility();
+    renderCanvas();
+  </script>
+</body>
+</html>
