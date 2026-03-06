@@ -1,12 +1,12 @@
 # 基于深度学习的图像修复系统（毕业设计）
 
 本项目面向 **图像修复统一框架**，结合你已收集的 5 类数据集，支持以下任务：
-
-- 低照度增强（LOL）
-- 图像去噪（SIDD）
-- 图像超分辨率（DIV2K）
-- 场景图像修复/补全（Places365 + 随机掩膜）
-- 人脸图像修复（faces_dataset_small）
+并附带数据集链接
+- 低照度增强（LOL）https://www.kaggle.com/datasets/soumikrakshit/lol-dataset
+- 图像去噪（SIDD）https://www.kaggle.com/datasets/rajat95gupta/smartphone-image-denoising-dataset
+- 图像超分辨率（DIV2K）https://www.kaggle.com/datasets/joe1995/div2k-dataset?resource=download
+- 场景图像修复/补全（Places365 + 随机掩膜）https://www.kaggle.com/datasets/benjaminkz/places365?select=train.txt
+- 人脸图像修复（faces_dataset_small）https://www.kaggle.com/datasets/tommykamaz/faces-dataset-small
 
 ## 1. 项目结构
 
